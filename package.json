@@ -2,7 +2,7 @@
   "name": "node-word-count",
   "version": "0.0.0",
   "scripts": {
-    "start" : "bin/application.js",
+    "start" : "application.js",
     "test" : "echo \"Error: no test specified\" && exit 1"
   },
  "repository": {
