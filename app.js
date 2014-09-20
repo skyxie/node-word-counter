@@ -1,0 +1,37 @@
+
+'use strict';
+
+var path = require("path");
+var winston = require("winston");
+var express = require("express");
+var helpers = require("express-helpers");
+var expressWinston = require("express-winston");
+var bodyParser = require("body-parser");
+
+var consoleLoggerTransport = new winston.transports.Console({
+                               level: (process.env.LOG_LEVEL || "info"),
+                               dumpExceptions : true,
+                               showStack : true,
+                               colorize : true
+                             });
+
+var transports = [ consoleLoggerTransport ];
+
+var logger = new winston.Logger({"transports" : transports});
+
+var sqlite = process.env.SQLITE || path.resolve(__dirname, "data");
+
+var app = express();
+
+helpers(app);
+app.use(express.static("public"));
+app.use(expressWinston.logger({"transports" : transports}));
+app.use(expressWinston.errorLogger({"transports" : transports}));
+app.use(bodyParser.json());
+
+require(path.resolve(__dirname, "routes"))(app, logger, sqlite);
+
+var port = process.env.PORT || 8000;
+app.listen(port, function() {
+  logger.info("Server listening on port %d", port);
+});

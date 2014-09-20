@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word Machine</title>
+
+  <style>
+    .display {
+      float: left;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      width: 90%;
+      margin-left: 5%;
+      margin-right: 5%;
+    }
+
+    .section {
+      float: left;
+      width: 100%;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #000;
+    }
+
+    .button {
+      float: left;
+      text-align: center;
+      width: 80%;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      padding-left: 5%;
+      padding-right: 5%;
+      margin-left: 5%;
+      margin-right: 5%;
+    }
+  </style>
+
+  <script src="/jquery-2.1.1.js"></script>
+  <script src="/underscore.js"></script>
+  <script src="/word-count.js"></script>
+
+  <script>
+    $( document ).ready(function() {
+      $("#fetchButton").click(function() {
+        $.ajax({
+          "url" : "/",
+          "dataType" : "json",
+          "success" : function(data) {
+            $("#fetchStatus").html("Success!");
+            $("#fetch").html(JSON.stringify(data, null, 4));
+
+            data.word_count = wordCount(data.payload.text, data.payload.words, _);
+            $("#post").html(JSON.stringify(data, null, 4));
+          },
+          "error" : function(data) {
+             $("#fetchStatus").html("ERROR: "+JSON.stringify(data, null, 4));
+          }
+        });
+      });
+
+      $("#postButton").click(function() {
+        $.ajax({
+          "url" : "/",
+          "dataType" : "json",
+          "success" : function(data) {
+            $("#postStatus").html("Success!");
+          },
+          "error" : function(data) {
+             $("#postStatus").html("ERROR: "+JSON.stringify(data, null, 4));
+          }
+        });
+      });
+
+      $("#addButton").click(function() {
+        $.ajax({
+          "url" : "/admin",
+          "data" : JSON.stringify({ "text" : $("#add").val() }),
+          "dataType" : "json",
+          "headers" : {"Content-Type" : "application/json"},
+          "type" : "POST",
+          "success" : function() {
+            $("#addStatus").html("Success!");
+          },
+          "error" : function(data) {
+            $("#addStatus").html("ERROR: "+JSON.stringify(data, null, 4));
+          }
+        })
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="section">
+    <div class="button" id="fetchStatus"></div>
+    <pre id="fetch" class="display"></pre>
+    <div class="button"><button id="fetchButton">Fetch Payload</button></div>
+  </div>
+  <div class="section">
+    <div class="button" id="postStatus"></div>
+    <pre id="post" class="display"></pre>
+    <div class="button"><button id="postButton">Post Payload with Word Counts</button></div>
+  </div>
+  <div class="section">
+    <div class="button" id="addStatus"></div>
+    <textarea id="add" class="display" style="padding:0px;margin-right:10%;margin-left:10%"></textarea>
+    <div class="button"><button id="addButton">Add Text</button></div>
+  </div>
+</body>
+</html>

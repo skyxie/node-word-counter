@@ -1,0 +1,33 @@
+{
+  "name": "node-word-count",
+  "version": "0.0.0",
+  "scripts": {
+    "start" : "bin/application.js",
+    "test" : "echo \"Error: no test specified\" && exit 1"
+  },
+ "repository": {
+    "type": "git",
+    "url": "https://github.com/skyxie/node-word-counter.git"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "fs.extra": "*",
+    "underscore": "1.5.1",
+    "winston": "*",
+    "express": "*",
+    "express-helpers": "*",
+    "express-winston": "*",
+    "body-parser": "*",
+    "async": "*",
+    "sqlite3": "*",
+    "ejs" : "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "sinon": "*",
+    "chai": "*",
+    "sinon-chai": "*"
+  }
+}
