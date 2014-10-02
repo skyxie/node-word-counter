@@ -25,33 +25,8 @@ describe("WordMachine", function() {
       var logger = new winston.Logger({"transports" : transports});
       var file = path.resolve(__dirname, "test_data");
 
-      wm = new WordMachine(logger, file);
-      wm.initialize(done);
-    });
-
-    afterEach(function(done) {
-      var db = wm.db;
-
-      db.serialize(function() {
-        db.run("DROP TABLE lorem", done);
-      });
-
-      db.close();
-    });
-
-    it("should initialize database", function(done) {
-      var db = wm.db;
-
-      db.serialize(function() {
-        db.each("SELECT text FROM lorem", function(err, row) {
-          if (err) {
-            done(err);
-          } else {
-            row.text.should.equal("lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua");
-            done();
-          }
-        });
-      });
+      wm = new WordMachine(logger);
+      wm.initialize(done, path.join("test", "texts"));
     });
 
     it("should callback random text", function(done) {
@@ -60,58 +35,21 @@ describe("WordMachine", function() {
           done(err);
         } else {
           should.exist(text);
-          text.should.equal("lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua");
-          done();
+          text.should.equal("The quick brown fox jumped over the lazy dog.\n");
+          done(err);
         }
       });
     });
 
-    it("should add text stripped of symbols", function(done) {
-      wm.addText(
-        "To be, or not to be, that is the question—\n" +
-        "Whether 'tis Nobler in the mind to suffer\n" +
-        "The Slings and Arrows of outrageous Fortune,\n" +
-        "Or to take Arms against a Sea of troubles,"
-      );
-      var db = wm.db;
-
-      db.serialize(function() {
-        db.each("SELECT text FROM lorem LIMIT 1 OFFSET 1", function(err, row) {
-          if (err) {
-            done(err);
-          } else {
-            row.text.should.equal(
-              "to be or not to be that is the question" +
-              "whether tis nobler in the mind to suffer" +
-              "the slings and arrows of outrageous fortune" +
-              "or to take arms against a sea of troubles"
-            );
-            done();
-          }
-        });
+    it("randWords should return a list of 0 to n words from some text of n unique words", function() {
+      var words = wm.randWords("the quick brown fox jumped over the lazy dog");
+      words.length.should.be.at.most(8);
+      words.length.should.be.at.least(0);
+      words.forEach(function(word) {
+        word.should.match(/quick|brown|fox|jumped|over|the|lazy|dog/);
       });
     });
-
-    describe("randWords", function() {
-      it("should return a list of zero words from text of less than 4 unique words", function() {
-        wm.randWords("foo bar foo bar").should.eql([]);
-      });
-
-      it("should return a list of one word from some text of more than 4 unique words", function() {
-        var words = wm.randWords("foo bar lorem ipsum");
-        words.length.should.equal(1);
-        words[0].should.match(/foo|bar|lorem|ipsum/);
-      });
-
-      it("should return a list of two words from some text of more than 8 unique words", function() {
-        var words = wm.randWords("the quick brown fox jumped over the lazy dog");
-        words.length.should.equal(2);
-        words[0].should.match(/quick|brown|fox|jumped|over|the|lazy|dog/);
-        words[1].should.match(/quick|brown|fox|jumped|over|the|lazy|dog/);
-        words[0].should.not.equal(words[1]);
-      });
-    });
-
+    
     it("should validate payload", function() {
       var payload = {
         "text" : "the quick brown fox jumped over the lazy dog",
@@ -130,7 +68,7 @@ describe("WordMachine", function() {
         if (error) {
           done(error);
         } else {
-          payload.text.should.equal("lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua");
+          payload.text.should.equal("The quick brown fox jumped over the lazy dog.\n");
           should.exist(payload.token);
           should.exist(payload.words);
           wm.verifyPayload(payload).should.be.true;

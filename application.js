@@ -29,7 +29,7 @@ app.use(expressWinston.logger({"transports" : transports}));
 app.use(expressWinston.errorLogger({"transports" : transports}));
 app.use(bodyParser.json());
 
-require(path.resolve(__dirname, "routes"))(app, logger, sqlite);
+require(path.resolve(__dirname, "routes"))(app, logger);
 
 var port = process.env.PORT || 8000;
 app.listen(port, function() {

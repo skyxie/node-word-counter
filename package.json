@@ -14,14 +14,14 @@
   },
   "dependencies": {
     "fs.extra": "*",
-    "underscore": "1.5.1",
+    "underscore": "1.7.0",
     "winston": "*",
     "express": "*",
     "express-helpers": "*",
     "express-winston": "*",
     "body-parser": "*",
     "async": "*",
-    "sqlite3": "*",
+    "glob": "*",
     "ejs" : "*"
   },
   "devDependencies": {

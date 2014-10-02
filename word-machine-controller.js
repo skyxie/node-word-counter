@@ -6,8 +6,8 @@ var path = require('path');
 var Async = require('async');
 var WordMachine = require(path.resolve(__dirname, "word-machine"));
 
-var wordMachineFunction = function(logger, filename) {
-  var wm = new WordMachine(logger, filename);
+var wordMachineFunction = function(logger) {
+  var wm = new WordMachine(logger, path.resolve("texts"));
   return function(callback) {
     wm.initialize(function(error) {
       callback(error, wm);
@@ -15,11 +15,11 @@ var wordMachineFunction = function(logger, filename) {
   };
 };
 
-var showFunction = function(logger, filename) {
+var showFunction = function(logger) {
   return function(req, res) {
     Async.waterfall(
       [
-        wordMachineFunction(logger, filename),
+        wordMachineFunction(logger),
         function(wm, callback) {
           wm.randPayload(callback);
         }
@@ -35,13 +35,14 @@ var showFunction = function(logger, filename) {
   };
 };
 
-var verifyFunction = function(logger, filename) {
+var verifyFunction = function(logger) {
   return function(req, res) {
     Async.waterfall(
       [
-        wordMachineFunction(logger, filename),
+        wordMachineFunction(logger),
         function(wm, callback) {
           var payload = req.param("payload");
+          logger.debug(payload);
           if (typeof(payload) == "undefined") {
             callback(new Error("Missing payload"));
           } else if (!wm.verifyPayload(payload)) {
@@ -70,37 +71,16 @@ var verifyFunction = function(logger, filename) {
   };
 };
 
-var adminFunction = function(logger, filename) {
+var adminFunction = function(logger) {
   return function(req, res) {
-    wordMachineFunction(logger, filename)(function(error, wm) {
+    wordMachineFunction(logger)(function(error, wm) {
       res.render("admin.html.ejs", {"word_machine" : wm});
     });
-  };
-};
-
-var addTextFunction = function(logger, filename) { 
-  return function(req, res) {
-    Async.waterfall(
-      [
-        wordMachineFunction(logger, filename),
-        function(wm, callback) {
-          wm.addText(req.param("text"), callback);
-        }
-      ],
-      function(error) {
-        if (error) {
-          res.status(400).send(error);
-        } else {
-          res.sendStatus(200);
-        }
-      }
-    );
   };
 };
 
 module.exports = {
   "showFunction" : showFunction,
   "verifyFunction" : verifyFunction,
-  "adminFunction" : adminFunction,
-  "addTextFunction" : addTextFunction
+  "adminFunction" : adminFunction
 };

@@ -43,67 +43,49 @@
     $( document ).ready(function() {
       $("#fetchButton").click(function() {
         $.ajax({
+          "type" : "GET",
           "url" : "/",
           "dataType" : "json",
           "success" : function(data) {
             $("#fetchStatus").html("Success!");
             $("#fetch").html(JSON.stringify(data, null, 4));
 
-            data.word_count = wordCount(data.payload.text, data.payload.words, _);
+            data.payload.word_count = wordCount(data.payload.text, data.payload.words, _);
             $("#post").html(JSON.stringify(data, null, 4));
           },
           "error" : function(data) {
-             $("#fetchStatus").html("ERROR: "+JSON.stringify(data, null, 4));
+             $("#fetchStatus").html(JSON.stringify(data, null, 4));
           }
         });
       });
 
       $("#postButton").click(function() {
         $.ajax({
+          "type" : "POST",
           "url" : "/",
           "dataType" : "json",
+          "contentType" : "application/json",
+          "data" : $("#post").html(),
           "success" : function(data) {
             $("#postStatus").html("Success!");
           },
           "error" : function(data) {
-             $("#postStatus").html("ERROR: "+JSON.stringify(data, null, 4));
+             $("#postStatus").html(JSON.stringify(data, null, 4));
           }
         });
-      });
-
-      $("#addButton").click(function() {
-        $.ajax({
-          "url" : "/admin",
-          "data" : JSON.stringify({ "text" : $("#add").val() }),
-          "dataType" : "json",
-          "headers" : {"Content-Type" : "application/json"},
-          "type" : "POST",
-          "success" : function() {
-            $("#addStatus").html("Success!");
-          },
-          "error" : function(data) {
-            $("#addStatus").html("ERROR: "+JSON.stringify(data, null, 4));
-          }
-        })
       });
     });
   </script>
 </head>
 <body>
   <div class="section">
-    <div class="button" id="fetchStatus"></div>
+    <pre id="fetchStatus" class="display"></pre>
     <pre id="fetch" class="display"></pre>
     <div class="button"><button id="fetchButton">Fetch Payload</button></div>
   </div>
   <div class="section">
-    <div class="button" id="postStatus"></div>
+    <pre id="postStatus" class="display"></pre>
     <pre id="post" class="display"></pre>
     <div class="button"><button id="postButton">Post Payload with Word Counts</button></div>
   </div>
-  <div class="section">
-    <div class="button" id="addStatus"></div>
-    <textarea id="add" class="display" style="padding:0px;margin-right:10%;margin-left:10%"></textarea>
-    <div class="button"><button id="addButton">Add Text</button></div>
-  </div>
-</body>
 </html>

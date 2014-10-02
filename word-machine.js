@@ -2,87 +2,62 @@
 'use strict';
 
 var _ = require("underscore");
+var fs = require("fs.extra");
 var path = require('path');
+var glob = require('glob');
 var crypto = require('crypto');
 var Async = require('async');
-var sqlite3 = require('sqlite3').verbose();
 
-var WordMachine = function(logger, filename) {
-  logger.debug("Creating WordMachine with sqlite file: %s", filename);
-  var db = new sqlite3.Database(filename);
+//
+// Private methods
+//
+var _publicWordCount = require(path.resolve(__dirname, "public", "word-count.js"));
+var _cleanText = _publicWordCount.cleanText;
+var _wordCount = _publicWordCount.wordCount;
 
-  this.db = db;
+var WordMachine = function(logger) {
+  this.text_files = [];
   this.logger = logger;
   this.secret = "some-secret-salt";
 };
 
-WordMachine.prototype.initialize = function(callback) {
+WordMachine.prototype.initialize = function(callback, textDir) {
   var self = this;
-  var db = this.db;
 
-  // Create in-memory table of random text
-  db.serialize(function() {
-    db.get("SELECT count(1) as count FROM sqlite_master WHERE type=? AND name=?", "table", "lorem", function(err, row) {
-      if (err || row.count >= 1) {
-        callback(err);
-      } else {
-          db.run("CREATE TABLE lorem (text TEXT)", function(err) {
-          if (err) {
-            callback(err);
-          } else {
-            // Add initial random text
-            self.addText(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "+
-              "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-              callback
-            );
-          }
-        });
-      }
-    });
-  });
-};
-
-WordMachine.prototype.addText = function(text, callback) {
-  var db = this.db;
-  var logger = this.logger;
-
-  // Remove all punctuation and reduce all characters to lower case
-  text = text.replace(/[^ a-zA-Z0-9]/g, "").toLowerCase();
-  logger.debug("Insert text \"%s\"", text);
-
-  db.serialize(function() {
-    db.run("INSERT INTO lorem VALUES (?)", text, callback);
+  glob(path.join(textDir, "*"), function(error, files) {
+    self.logger.debug("Found files: "+files.join(","));
+    self.textFiles = files;
+    callback(error);
   });
 };
 
 WordMachine.prototype.randText = function(callback) {
-  var db = this.db;
-  var logger = this.logger;
+  var self = this;
 
-  db.serialize(function() {
-    db.all("SELECT text FROM lorem", function(err, rows) {
-      if (err) {
-        callback(error);
-      } else {
-        var randomIndex = Math.floor(Math.random() * rows.length);
-        logger.debug("Selected text %d out of %d: \"%s\"", randomIndex, rows.length, rows[randomIndex].text);
-        callback(null, rows[randomIndex].text);
-      }
-    });
-  });
+  var textFile = path.resolve(_.sample(self.textFiles));
+  self.logger.debug("Opening file: "+textFile);
+
+  var fd = fs.createReadStream(textFile);
+
+  var data = "", error = null;
+  fd.on("readable", function() { self.logger.debug("Reading file: "+textFile); });
+  fd.on("data", function(chunk) { data += chunk; });
+  fd.on("error", function(err) { error = err; });
+  fd.on("end", function() { callback(error, data); });
 };
 
 WordMachine.prototype.randWords = function(text) {
-  var words = _.uniq(text.split(/\s+/));
-  var numRandWords = Math.floor(words.length * 0.25);
-  this.logger.debug("Selecting %d out of %d shuffled words", numRandWords, words.length);
-  return _.shuffle(words).slice(0, numRandWords);
+  var words = _.uniq(_cleanText(text).split(/\s+/));
+  // Number of exclusion words should be 0 - n
+  var numRandWords = Math.floor(Math.random() * (words.length + 1));
+  this.logger.debug("Selecting %d out of %d unique words", numRandWords, words.length);
+  return _.sample(words, numRandWords);
 };
 
 WordMachine.prototype.randPayload = function(callback) {
   var self = this;
   self.randText(function(error, text) {
+    self.logger.debug(text);
     if (error) {
       callback(error);
     } else {
@@ -100,7 +75,6 @@ WordMachine.prototype.verifyPayload = function(payload) {
 // Class methods
 //
 
-var _wordCount = require(path.resolve(__dirname, "public", "word-count.js")).wordCount;
 WordMachine.wordCount = function(text, exceptWords) {
   return _wordCount(text, exceptWords, _);
 }
