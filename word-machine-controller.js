@@ -7,9 +7,9 @@ var Async = require('async');
 var WordMachine = require(path.resolve(__dirname, "word-machine"));
 
 var wordMachineFunction = function(logger) {
-  var wm = new WordMachine(logger, path.resolve("texts"));
+  var wm = new WordMachine(logger);
   return function(callback) {
-    wm.initialize(function(error) {
+    wm.initialize(path.resolve(__dirname, "texts"), function(error) {
       callback(error, wm);
     });
   };

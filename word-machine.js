@@ -21,7 +21,7 @@ var WordMachine = function(logger) {
   this.secret = "some-secret-salt";
 };
 
-WordMachine.prototype.initialize = function(callback, textDir) {
+WordMachine.prototype.initialize = function(textDir, callback) {
   var self = this;
 
   glob(path.join(textDir, "*"), function(error, files) {

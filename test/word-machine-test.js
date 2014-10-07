@@ -23,10 +23,10 @@ describe("WordMachine", function() {
 
       var transports = [ consoleLoggerTransport ];
       var logger = new winston.Logger({"transports" : transports});
-      var file = path.resolve(__dirname, "test_data");
+      var data = path.resolve(__dirname, "texts");
 
       wm = new WordMachine(logger);
-      wm.initialize(done, path.join("test", "texts"));
+      wm.initialize(data, done);
     });
 
     it("should callback random text", function(done) {
