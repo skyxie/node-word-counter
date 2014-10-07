@@ -19,8 +19,6 @@ var transports = [ consoleLoggerTransport ];
 
 var logger = new winston.Logger({"transports" : transports});
 
-var sqlite = process.env.SQLITE || path.resolve(__dirname, "data");
-
 var app = express();
 
 helpers(app);
