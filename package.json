@@ -13,8 +13,11 @@
     "node": "0.10.x"
   },
   "dependencies": {
+    "request" : "*",
+    "async" : "*",
     "fs.extra": "*",
-    "underscore": "1.7.0",
+    "underscore": "*",
+    "commander": "*",
     "winston": "*",
     "express": "*",
     "express-helpers": "*",
